@@ -11,7 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const assert = require("assert");
 const path = require("path");
 const configStore_1 = require("../lib/configStore");
-describe("tower.ScriptStore", () => {
+describe("ConfigStore", () => {
     it("should work with directory", async () => {
         const store = new configStore_1.ConfigStore(path.join(__dirname, "testConfig"));
         await store.reload();

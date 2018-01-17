@@ -52,7 +52,7 @@ export class ScriptStore implements IScriptSource {
       return cached.script;
     }
     let content = await fs.readFile(fullPath, "utf8");
-    content = "(async function(require, $_request_$, $_response_$){\n" +
+    content = "(async function(require, $request, $response){\n" +
         content + "\n})";
     const script = new vm.Script(content, {
       filename: name,

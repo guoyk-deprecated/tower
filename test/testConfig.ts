@@ -11,7 +11,7 @@ import assert = require("assert");
 import path = require("path");
 import {ConfigStore} from "../lib/configStore";
 
-describe("tower.ScriptStore", () => {
+describe("ConfigStore", () => {
   it("should work with directory", async () => {
       const store = new ConfigStore(path.join(__dirname, "testConfig"));
       await store.reload();
