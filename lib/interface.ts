@@ -7,10 +7,22 @@
  * https://opensource.org/licenses/MIT
  */
 
-export interface IConfigSource {
-    get(key: string): any;
+/**
+ * interface for ConfigStore
+ */
+export interface IConfigSource { get(key: string): any; }
+
+/**
+ * interface for ScriptStore
+ */
+export interface IScriptSource {
+  runScript(name: string, request: any): Promise<any>;
 }
 
-export interface IScriptSource {
-    runScript(name: string, request: any): Promise<any>;
+/**
+ * interface for Adapter
+ */
+export interface IAdapter {
+  /** dispose internal resources */
+  dispose(): void;
 }

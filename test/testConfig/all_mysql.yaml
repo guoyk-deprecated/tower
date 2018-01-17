@@ -31,7 +31,7 @@ configs:
       members:
         - test-db
         - test-db2
-      slices:
+      ranges:
         - from: 0
           to: 1000000
         - from: 1000000

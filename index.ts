@@ -10,27 +10,27 @@ import {ConfigStore} from "./lib/configStore";
 import {ScriptStore} from "./lib/scriptStore";
 
 export interface ITowerConfig {
-    /** configuration directory */
-    configDir: string;
-    /** script directory */
-    scriptDir: string;
-    /** port number for web service */
-    port?: number;
+  /** configuration directory */
+  configDir: string;
+  /** script directory */
+  scriptDir: string;
+  /** port number for web service */
+  port?: number;
 }
 
 export class Tower {
-    public readonly configStore: ConfigStore;
-    public readonly scriptStore: ScriptStore;
+  public readonly configStore: ConfigStore;
+  public readonly scriptStore: ScriptStore;
 
-    public constructor(config: ITowerConfig) {
-        this.configStore = new ConfigStore(config.configDir);
-        this.scriptStore = new ScriptStore(config.scriptDir);
-    }
+  public constructor(config: ITowerConfig) {
+    this.configStore = new ConfigStore(config.configDir);
+    this.scriptStore = new ScriptStore(config.scriptDir);
+  }
 
-    /**
-     * load all internal components
-     */
-    public async load(): Promise<void> {
-        await this.configStore.reload();
-    }
+  /**
+   * load all internal components
+   */
+  public async load(): Promise<void> {
+    await this.configStore.reload();
+  }
 }

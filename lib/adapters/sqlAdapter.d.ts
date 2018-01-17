@@ -6,26 +6,72 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
-import { IAdapter } from "./adapter";
+import mysql = require("mysql");
+import { IAdapter, IConfigSource } from "../interface";
 /**
  * result of sql query
  */
-export interface ISqlResult {
-    /** sql query rows */
-    rows: any[];
+export interface ISqlQueryResult {
+    /** sql query results */
+    results: any;
     /** extra */
-    extra?: any;
+    fields: mysql.FieldInfo[];
 }
 /**
  * option of sql query
  */
-export interface ISqlOption {
+export interface ISqlQueryOption {
     /** use the master node if this adapter supports replica */
     master?: boolean;
-    /** id to lookup slice if this adapter supports sliceing */
-    sliceOf?: number;
+    /** id to lookup shard if this adapter supports sharding */
+    shardOf?: number;
+}
+export declare enum SqlAdapterType {
+    Single = 0,
+    Replica = 1,
+    Shard = 2,
+}
+/**
+ * option to construct a SqlAdapter
+ */
+export interface ISqlAdapterOption {
+    configSource: IConfigSource;
+    key: string;
+    type: SqlAdapterType;
+}
+export interface ISqlReplicaConfig {
+    master: string;
+    slaves: string[];
+}
+export interface ISqlShardConfig {
+    members: string[];
+    ranges: ISqlShardRange[];
+}
+export interface ISqlShardRange {
+    from?: number;
+    to?: number;
 }
 export declare class SqlAdapter implements IAdapter {
-    query(sql: string, args?: any[], option?: ISqlOption): Promise<ISqlResult>;
+    readonly key: string;
+    readonly configSource: IConfigSource;
+    readonly type: SqlAdapterType;
+    private seqId;
+    private conns;
+    constructor(option: ISqlAdapterOption);
+    /**
+     * execut sql query
+     * @param sql sql string
+     * @param args arguments
+     * @param option query option
+     */
+    query(sql: string, args?: any, option?: ISqlQueryOption): Promise<ISqlQueryResult>;
+    /**
+     * end and clean all internal connections
+     */
     dispose(): void;
+    private getConnection(option?);
+    private getShardConnectionByKey(key, option?);
+    private getReplicaConnectionByKey(key, option?);
+    private removeConnection(conn);
+    private getConnectionByKey(key);
 }

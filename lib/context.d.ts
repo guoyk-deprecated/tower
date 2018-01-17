@@ -6,8 +6,7 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
-import { IAdapter } from "./adapters/adapter";
-import { IConfigSource } from "./interface";
+import { IAdapter, IConfigSource } from "./interface";
 /**
  * context is used to track creation and disposing of adapters
  */

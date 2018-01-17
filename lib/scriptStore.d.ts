@@ -9,7 +9,8 @@ export declare class ScriptStore implements IScriptSource {
      */
     constructor(dir: string);
     /**
-     * get a compiled vm.Script instance from speicifed file, relative to directory
+     * get a compiled vm.Script instance from speicifed file, relative to
+     * directory
      * @param name
      */
     getScript(name: string): Promise<vm.Script>;
