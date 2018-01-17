@@ -1,0 +1,38 @@
+configs:
+  - key: test-db-m
+    value:
+      host: localhost
+      user: root
+      database: server_report
+  - key: test-db-s1
+    value:
+      host: localhost
+      user: root
+      database: server_report
+  - key: test-db-s2
+    value:
+      host: localhost
+      user: root
+      database: server_report
+  - key: test-db1
+    value:
+      master: test-db-m
+      slaves:
+        - test-db-s1
+        - test-db-s2
+  - key: test-db2
+    value:
+      master: test-db-m
+      slaves:
+        - test-db-s1
+        - test-db-s2
+  - key: test-split
+    value:
+      members:
+        - test-db
+        - test-db2
+      slices:
+        - from: 0
+          to: 1000000
+        - from: 1000000
+          to: 2000000

@@ -7,10 +7,13 @@
     "lib": "lib"
   },
   "dependencies": {
-    "fs-extra": "^5.0.0"
+    "@types/mocha": "^2.2.46",
+    "fs-extra": "^5.0.0",
+    "js-yaml": "^3.10.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "^5.0.0"
+    "@types/fs-extra": "^5.0.0",
+    "@types/js-yaml": "^3.10.1"
   },
   "scripts": {
     "test": "mocha"

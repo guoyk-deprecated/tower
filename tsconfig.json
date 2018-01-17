@@ -5,6 +5,7 @@
       "es2017"
     ],
     "module": "commonjs",
+    "declaration": true,
     "strict": true
   }
 }
