@@ -10,6 +10,7 @@ import fs = require("fs-extra");
 import path = require("path");
 import vm = require("vm");
 import {sanitizePathComponents} from "../utils";
+import {IScriptSource} from "./interface";
 
 type ScriptFunction = (require: any, request: any, response: any) => void;
 
@@ -22,7 +23,7 @@ interface IScriptCache {
     script: vm.Script;
 }
 
-export class ScriptStore {
+export class ScriptStore implements IScriptSource {
 
     public readonly directory: string;
 

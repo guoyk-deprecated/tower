@@ -1,4 +1,5 @@
-export declare class ConfigStore {
+import { IConfigSource } from "./interface";
+export declare class ConfigStore implements IConfigSource {
     /**
      * config directory
      */

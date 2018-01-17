@@ -10,17 +10,11 @@ import {ConfigStore} from "./lib/configStore";
 import {ScriptStore} from "./lib/scriptStore";
 
 export interface ITowerConfig {
-    /**
-     * configuration directory
-     */
+    /** configuration directory */
     configDir: string;
-    /**
-     * script directory
-     */
+    /** script directory */
     scriptDir: string;
-    /**
-     * port number for web service
-     */
+    /** port number for web service */
     port?: number;
 }
 

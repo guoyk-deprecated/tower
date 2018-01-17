@@ -10,8 +10,9 @@
 import fs = require("fs-extra");
 import yaml = require("js-yaml");
 import path = require("path");
+import {IConfigSource} from "./interface";
 
-export class ConfigStore {
+export class ConfigStore implements IConfigSource {
     /**
      * config directory
      */
