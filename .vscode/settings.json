@@ -1,0 +1,9 @@
+{
+    "eslint.enable": false,
+    "tslint.autoFixOnSave": true,
+    "editor.formatOnSave": false,
+    "licenser.author": "Yanke Guo <guoyk.cn@gmail.com>",
+    "licenser.license": "MIT",
+    "licenser.projectName": "tower",
+    "licenser.useSingleLineStyle": false
+}

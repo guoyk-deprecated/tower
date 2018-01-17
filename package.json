@@ -1,0 +1,32 @@
+{
+  "name": "tower",
+  "version": "1.0.0",
+  "description": "Tower - Service Framework for Node.js",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "fs-extra": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^5.0.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yankeguo/tower.git"
+  },
+  "keywords": [
+    "service",
+    "framework"
+  ],
+  "author": "Yanke Guo <guoyk.cn@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yankeguo/tower/issues"
+  },
+  "homepage": "https://github.com/yankeguo/tower#readme"
+}
