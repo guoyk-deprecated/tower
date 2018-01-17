@@ -7,7 +7,7 @@
  * https://opensource.org/licenses/MIT
  */
 import {IAdapter} from "./adapters/adapter";
-import {IConfigSource} from "./configStore";
+import {IConfigSource} from "./interface";
 
  /**
   * context is used to track creation and disposing of adapters

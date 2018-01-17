@@ -12,7 +12,7 @@
  /**
   * result of sql query
   */
- interface ISqlResult {
+ export interface ISqlResult {
      /** sql query rows */
      rows: any[];
      /** extra */
@@ -22,7 +22,7 @@
  /**
   * option of sql query
   */
- interface ISqlOption {
+ export interface ISqlOption {
      /** use the master node if this adapter supports replica */
      master?: boolean;
      /** id to lookup slice if this adapter supports sliceing */
@@ -30,6 +30,11 @@
  }
 
  export class SqlAdapter implements IAdapter {
+     public async query(sql: string, args?: any[], option?: ISqlOption): Promise<ISqlResult> {
+         return {
+             rows: [],
+         };
+     }
      public dispose() {
      }
  }
