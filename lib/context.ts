@@ -6,6 +6,8 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
+
+import * as utils from "../utils";
 import {SqlAdapter, SqlAdapterType} from "./adapters/sqlAdapter";
 import { XlsAdapter } from "./adapters/xlsAdapter";
 import {IAdapter, IConfigSource, IScriptSource} from "./interface";
@@ -99,7 +101,7 @@ export class Context {
     const script = (await this.scriptSource.getScript(name));
     const resp = {};
     const func = script.runInThisContext();
-    await func(require, this, request, resp);
+    await func(require, this, request, resp, utils);
     return resp;
   }
 

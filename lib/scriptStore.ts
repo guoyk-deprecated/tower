@@ -6,6 +6,7 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
+
 import fs = require("fs-extra");
 import path = require("path");
 import vm = require("vm");
@@ -50,7 +51,7 @@ export class ScriptStore implements IScriptSource {
       return cached.script;
     }
     let content = await fs.readFile(fullPath, "utf8");
-    content = "(async function(require, $context, $request, $response){\n" +
+    content = "(async function(require, $context, $request, $response, $utils){\n" +
         content + "\n})";
     const script = new vm.Script(content, {
       filename: name,
