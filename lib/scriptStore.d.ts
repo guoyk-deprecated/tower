@@ -14,11 +14,4 @@ export declare class ScriptStore implements IScriptSource {
      * @param name
      */
     getScript(name: string): Promise<vm.Script>;
-    /**
-     * execute a script with given request
-     * @param name script name
-     * @param request request object
-     * @returns {Promise<any>} response produced
-     */
-    runScript(name: string, request: any): Promise<any>;
 }

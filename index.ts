@@ -39,6 +39,9 @@ export class Tower {
    * create a new context
    */
   public createContext(): Context {
-    return new Context(this.configStore);
+    return new Context({
+      configSource: this.configStore,
+      scriptSource: this.scriptStore,
+    });
   }
 }

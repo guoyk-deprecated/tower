@@ -26,7 +26,10 @@ class Tower {
      * create a new context
      */
     createContext() {
-        return new context_1.Context(this.configStore);
+        return new context_1.Context({
+            configSource: this.configStore,
+            scriptSource: this.scriptStore,
+        });
     }
 }
 exports.Tower = Tower;

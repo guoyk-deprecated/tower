@@ -12,8 +12,6 @@ import vm = require("vm");
 import {sanitizePathComponents} from "../utils";
 import {IScriptSource} from "./interface";
 
-type ScriptFunction = (require: any, request: any, response: any) => void;
-
 interface IScriptCache {
   /// full path of script file
   fullPath: string;
@@ -52,7 +50,7 @@ export class ScriptStore implements IScriptSource {
       return cached.script;
     }
     let content = await fs.readFile(fullPath, "utf8");
-    content = "(async function(require, $request, $response){\n" +
+    content = "(async function(require, $context, $request, $response){\n" +
         content + "\n})";
     const script = new vm.Script(content, {
       filename: name,
@@ -63,17 +61,4 @@ export class ScriptStore implements IScriptSource {
     return script;
   }
 
-  /**
-   * execute a script with given request
-   * @param name script name
-   * @param request request object
-   * @returns {Promise<any>} response produced
-   */
-  public async runScript(name: string, request: any): Promise<any> {
-    const script = (await this.getScript(name));
-    const resp = {};
-    const func = script.runInThisContext() as ScriptFunction;
-    await func(require, request, resp);
-    return resp;
-  }
 }

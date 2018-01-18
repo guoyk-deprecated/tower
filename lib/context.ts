@@ -7,15 +7,21 @@
  * https://opensource.org/licenses/MIT
  */
 import {SqlAdapter, SqlAdapterType} from "./adapters/sqlAdapter";
-import {IAdapter, IConfigSource} from "./interface";
+import {IAdapter, IConfigSource, IScriptSource} from "./interface";
+
+export interface IContextOption {
+  configSource: IConfigSource;
+  scriptSource: IScriptSource;
+}
 
 /**
  * context is used to track creation and disposing of adapters
  */
 export class Context {
-  /** config store */
+  /** config source */
   public readonly configSource: IConfigSource;
-
+  /** script source */
+  public readonly scriptSource: IScriptSource;
   /** all living adapters */
   public readonly adapters: Set<IAdapter>;
 
@@ -23,8 +29,9 @@ export class Context {
    * initialize a context
    * @param configStore config store
    */
-  constructor(configStore: IConfigSource) {
-    this.configSource = configStore;
+  constructor(option: IContextOption) {
+    this.configSource = option.configSource;
+    this.scriptSource = option.scriptSource;
     this.adapters = new Set();
   }
 
@@ -72,6 +79,20 @@ export class Context {
       key,
       type: SqlAdapterType.Shard,
     })) as SqlAdapter;
+  }
+
+  /**
+   * execute a script with given request
+   * @param name script name
+   * @param request request object
+   * @returns {Promise<any>} response produced
+   */
+  public async runScript(name: string, request: any): Promise<any> {
+    const script = (await this.scriptSource.getScript(name));
+    const resp = {};
+    const func = script.runInThisContext();
+    await func(require, this, request, resp);
+    return resp;
   }
 
   /**

@@ -6,6 +6,7 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
+import vm = require("vm");
 
 /**
  * interface for ConfigStore
@@ -16,7 +17,7 @@ export interface IConfigSource { get(key: string): any; }
  * interface for ScriptStore
  */
 export interface IScriptSource {
-  runScript(name: string, request: any): Promise<any>;
+  getScript(name: string): Promise<vm.Script>;
 }
 
 /**
