@@ -6,6 +6,7 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
+import {SqlAdapter, SqlAdapterType} from "./adapters/sqlAdapter";
 import {IAdapter, IConfigSource} from "./interface";
 
 /**
@@ -13,7 +14,7 @@ import {IAdapter, IConfigSource} from "./interface";
  */
 export class Context {
   /** config store */
-  public readonly configStore: IConfigSource;
+  public readonly configSource: IConfigSource;
 
   /** all living adapters */
   public readonly adapters: Set<IAdapter>;
@@ -23,16 +24,8 @@ export class Context {
    * @param configStore config store
    */
   constructor(configStore: IConfigSource) {
-    this.configStore = configStore;
+    this.configSource = configStore;
     this.adapters = new Set();
-  }
-
-  /**
-   * track a adapter
-   * @param adapter adapter to track
-   */
-  public track(adapter: IAdapter) {
-    this.adapters.add(adapter);
   }
 
   /**
@@ -43,5 +36,51 @@ export class Context {
       adapter.dispose();
     }
     this.adapters.clear();
+  }
+
+  /**
+   * create a single sql adapter
+   * @param key config key
+   */
+  public createSqlAdapter(key: string): SqlAdapter {
+    return this.track(new SqlAdapter({
+      configSource: this.configSource,
+      key,
+      type: SqlAdapterType.Single,
+    })) as SqlAdapter;
+  }
+
+  /**
+   * create a replica sql adapter
+   * @param key config key
+   */
+  public createReplicaSqlAdapter(key: string): SqlAdapter {
+    return this.track(new SqlAdapter({
+      configSource: this.configSource,
+      key,
+      type: SqlAdapterType.Replica,
+    })) as SqlAdapter;
+  }
+
+  /**
+   * create a shard sql adapter
+   * @param key config key
+   */
+  public createShardSqlAdapter(key: string): SqlAdapter {
+    return this.track(new SqlAdapter({
+      configSource: this.configSource,
+      key,
+      type: SqlAdapterType.Shard,
+    })) as SqlAdapter;
+  }
+
+  /**
+   * track a adapter
+   * @param adapter adapter to track
+   * @returns the adapter
+   */
+  private track(adapter: IAdapter): IAdapter {
+    this.adapters.add(adapter);
+    return adapter;
   }
 }

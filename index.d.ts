@@ -7,8 +7,9 @@
  * https://opensource.org/licenses/MIT
  */
 import { ConfigStore } from "./lib/configStore";
+import { Context } from "./lib/context";
 import { ScriptStore } from "./lib/scriptStore";
-export interface ITowerConfig {
+export interface ITowerOption {
     /** configuration directory */
     configDir: string;
     /** script directory */
@@ -19,9 +20,13 @@ export interface ITowerConfig {
 export declare class Tower {
     readonly configStore: ConfigStore;
     readonly scriptStore: ScriptStore;
-    constructor(config: ITowerConfig);
+    constructor(config: ITowerOption);
     /**
      * load all internal components
      */
     load(): Promise<void>;
+    /**
+     * create a new context
+     */
+    createContext(): Context;
 }

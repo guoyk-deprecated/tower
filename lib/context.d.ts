@@ -6,13 +6,14 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
+import { SqlAdapter } from "./adapters/sqlAdapter";
 import { IAdapter, IConfigSource } from "./interface";
 /**
  * context is used to track creation and disposing of adapters
  */
 export declare class Context {
     /** config store */
-    readonly configStore: IConfigSource;
+    readonly configSource: IConfigSource;
     /** all living adapters */
     readonly adapters: Set<IAdapter>;
     /**
@@ -21,12 +22,28 @@ export declare class Context {
      */
     constructor(configStore: IConfigSource);
     /**
-     * track a adapter
-     * @param adapter adapter to track
-     */
-    track(adapter: IAdapter): void;
-    /**
      * dispose all previously tracked adapters
      */
     dispose(): void;
+    /**
+     * create a single sql adapter
+     * @param key config key
+     */
+    createSqlAdapter(key: string): SqlAdapter;
+    /**
+     * create a replica sql adapter
+     * @param key config key
+     */
+    createReplicaSqlAdapter(key: string): SqlAdapter;
+    /**
+     * create a shard sql adapter
+     * @param key config key
+     */
+    createShardSqlAdapter(key: string): SqlAdapter;
+    /**
+     * track a adapter
+     * @param adapter adapter to track
+     * @returns the adapter
+     */
+    private track(adapter);
 }

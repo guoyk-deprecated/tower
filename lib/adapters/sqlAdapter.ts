@@ -83,6 +83,7 @@ function validateSqlConfig(
           validateSqlConfig(slaveKey, SqlAdapterType.Single, configSource);
         }
       }
+      return;
     }
     case SqlAdapterType.Shard: {
       const config = configSource.get(key) as ISqlShardConfig;
@@ -97,6 +98,7 @@ function validateSqlConfig(
           throw new Error("invalid shard object found in shard config for key ${key}");
         }
       }
+      return;
     }
     default:
       throw new Error(`invalid sql adapter type ${type}`);

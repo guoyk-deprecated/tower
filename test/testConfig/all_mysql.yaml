@@ -29,7 +29,7 @@ configs:
   - key: test-split
     value:
       members:
-        - test-db
+        - test-db1
         - test-db2
       ranges:
         - from: 0

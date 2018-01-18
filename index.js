@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * https://opensource.org/licenses/MIT
  */
 const configStore_1 = require("./lib/configStore");
+const context_1 = require("./lib/context");
 const scriptStore_1 = require("./lib/scriptStore");
 class Tower {
     constructor(config) {
@@ -20,6 +21,12 @@ class Tower {
      */
     async load() {
         await this.configStore.reload();
+    }
+    /**
+     * create a new context
+     */
+    createContext() {
+        return new context_1.Context(this.configStore);
     }
 }
 exports.Tower = Tower;

@@ -7,9 +7,10 @@
  * https://opensource.org/licenses/MIT
  */
 import {ConfigStore} from "./lib/configStore";
+import {Context} from "./lib/context";
 import {ScriptStore} from "./lib/scriptStore";
 
-export interface ITowerConfig {
+export interface ITowerOption {
   /** configuration directory */
   configDir: string;
   /** script directory */
@@ -22,7 +23,7 @@ export class Tower {
   public readonly configStore: ConfigStore;
   public readonly scriptStore: ScriptStore;
 
-  public constructor(config: ITowerConfig) {
+  public constructor(config: ITowerOption) {
     this.configStore = new ConfigStore(config.configDir);
     this.scriptStore = new ScriptStore(config.scriptDir);
   }
@@ -32,5 +33,12 @@ export class Tower {
    */
   public async load(): Promise<void> {
     await this.configStore.reload();
+  }
+
+  /**
+   * create a new context
+   */
+  public createContext(): Context {
+    return new Context(this.configStore);
   }
 }
