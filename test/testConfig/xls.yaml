@@ -1,4 +1,4 @@
 configs:
   - key: xls
     value:
-      directory: /tmp/
+      output: /tmp/

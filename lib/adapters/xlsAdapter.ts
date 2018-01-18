@@ -27,7 +27,7 @@
  }
 
   interface IXlsAdapterConfig {
-     directory: string;
+     output: string;
  }
 
   export class XlsAdapter implements IAdapter {
@@ -51,8 +51,8 @@
             name += ".xls";
         }
         const config = this.configSource.get(this.key) as IXlsAdapterConfig;
-        await fs.mkdirp(path.join(config.directory, theme));
-        const fullPath = path.join(config.directory, theme, name);
+        await fs.mkdirp(path.join(config.output, theme));
+        const fullPath = path.join(config.output, theme, name);
         const wb = xlsx.utils.book_new();
         wb.SheetNames.push(DEFAULT_SHEET_NAME);
         wb.Sheets[DEFAULT_SHEET_NAME] = xlsx.utils.aoa_to_sheet(data);
