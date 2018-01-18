@@ -33,6 +33,8 @@ export interface ISqlQueryOption {
     master?: boolean;
     /** id to lookup shard if this adapter supports sharding */
     shardOf?: number | string;
+    /** id colume, used for queryMap function */
+    idColumn?: string;
 }
 export declare enum SqlAdapterType {
     Single = 0,
@@ -73,6 +75,13 @@ export declare class SqlAdapter implements IAdapter {
      * @param option query option
      */
     query(sql: string, args?: any, option?: ISqlQueryOption): Promise<ISqlQueryResult>;
+    /**
+     * execute sql query mutiple times and returns a map with id => object
+     * @param sql sql query like `SELECT a AS A FROM table_a WHERE id = ? LIMIT 1` with 1 single parameter
+     * @param ids set of ids
+     * @param option
+     */
+    queryMap(sql: string, ids: Set<string>, option?: ISqlQueryOption): Promise<Map<string, any>>;
     /**
      * end and clean all internal connections
      */

@@ -37,6 +37,8 @@ export interface ISqlQueryOption {
   master?: boolean;
   /** id to lookup shard if this adapter supports sharding */
   shardOf?: number | string;
+  /** id colume, used for queryMap function */
+  idColumn?: string;
 }
 
 export enum SqlAdapterType {
@@ -186,6 +188,30 @@ export class SqlAdapter implements IAdapter {
       results.push(await this.executeSql(conn, sql, args, option));
     }
     return compactExecutionResults(results);
+  }
+
+  /**
+   * execute sql query mutiple times and returns a map with id => object
+   * @param sql sql query like `SELECT a AS A FROM table_a WHERE id = ? LIMIT 1` with 1 single parameter
+   * @param ids set of ids
+   * @param option
+   */
+  public async queryMap(sql: string, ids: Set<string>, option?: ISqlQueryOption): Promise<Map<string, any>> {
+    const idColumn = (option && option.idColumn) ? option.idColumn : "id";
+    const result = new Map();
+    for (const id of ids) {
+      if (option) {
+        // assign shardOf automatically
+        option.shardOf = option.shardOf || parseInt(id) || "all";
+      }
+      const singleResult = await this.query(sql, [id], option);
+      for (const row of singleResult.rows) {
+        if (row[idColumn]) {
+          result.set(String(row[idColumn]), row);
+        }
+      }
+    }
+    return result;
   }
 
   /**
