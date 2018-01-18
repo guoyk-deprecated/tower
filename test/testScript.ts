@@ -30,5 +30,6 @@ describe("ScriptStore", () => {
     const ts2 = process.hrtime(start2);
     assert.equal(resp.value, 6);
     assert.equal(resp2.value, 6);
+    assert.equal(resp.hello, "world");
   });
 });

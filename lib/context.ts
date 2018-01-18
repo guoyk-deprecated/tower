@@ -7,6 +7,7 @@
  * https://opensource.org/licenses/MIT
  */
 
+import vm = require("vm");
 import * as utils from "../utils";
 import {SqlAdapter, SqlAdapterType} from "./adapters/sqlAdapter";
 import { XlsAdapter } from "./adapters/xlsAdapter";
@@ -27,6 +28,8 @@ export class Context {
   public readonly scriptSource: IScriptSource;
   /** all living adapters */
   public readonly adapters: Set<IAdapter>;
+  /** defined functions */
+  private cache: Map<string, any>;
 
   /**
    * initialize a context
@@ -36,16 +39,20 @@ export class Context {
     this.configSource = option.configSource;
     this.scriptSource = option.scriptSource;
     this.adapters = new Set();
+    this.cache = new Map();
   }
 
   /**
    * dispose all previously tracked adapters
    */
   public dispose() {
+    // clean all adapters
     for (const adapter of this.adapters) {
       adapter.dispose();
     }
     this.adapters.clear();
+    // clean all cached functions
+    this.cache.clear();
   }
 
   /**
@@ -97,12 +104,27 @@ export class Context {
    * @param request request object
    * @returns {Promise<any>} response produced
    */
-  public async runScript(name: string, request: any): Promise<any> {
-    const script = (await this.scriptSource.getScript(name));
-    const resp = {};
-    const func = script.runInThisContext();
-    await func(require, this, request, resp, utils);
-    return resp;
+  public async runScript(name: string, input?: any): Promise<any> {
+    let func = this.cache.get(name);
+    if (func == null) {
+      // load a vm.Script object from script file
+      const script = await this.scriptSource.getScript(name);
+      // run the script and cache the function
+      func = script.runInThisContext();
+    }
+    const output = {};
+    const result = func(this, input, output);
+    if (result instanceof Promise) {
+      await result;
+    }
+    return output;
+  }
+
+  /**
+   * same as runScript, suggested to use in inner scope
+   */
+  public async $load(name: string, input?: any): Promise<any> {
+    return this.runScript(name, input);
   }
 
   /**

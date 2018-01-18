@@ -50,9 +50,7 @@ export class ScriptStore implements IScriptSource {
     if (cached && cached.mtime === stat.mtimeMs) {
       return cached.script;
     }
-    let content = await fs.readFile(fullPath, "utf8");
-    content = "(async function(require, $context, $request, $response, $utils){\n" +
-        content + "\n})";
+    const content = await fs.readFile(fullPath, "utf8");
     const script = new vm.Script(content, {
       filename: name,
       lineOffset: -1,

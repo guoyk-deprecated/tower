@@ -15,6 +15,8 @@ export declare class Context {
     readonly scriptSource: IScriptSource;
     /** all living adapters */
     readonly adapters: Set<IAdapter>;
+    /** defined functions */
+    private cache;
     /**
      * initialize a context
      * @param configStore config store
@@ -46,7 +48,11 @@ export declare class Context {
      * @param request request object
      * @returns {Promise<any>} response produced
      */
-    runScript(name: string, request: any): Promise<any>;
+    runScript(name: string, input?: any): Promise<any>;
+    /**
+     * same as runScript, suggested to use in inner scope
+     */
+    $load(name: string, input?: any): Promise<any>;
     /**
      * track a adapter
      * @param adapter adapter to track
