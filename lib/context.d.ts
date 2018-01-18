@@ -50,9 +50,18 @@ export declare class Context {
      */
     runScript(name: string, input?: any): Promise<any>;
     /**
-     * same as runScript, suggested to use in inner scope
+     * alias to runScript
      */
     $load(name: string, input?: any): Promise<any>;
+    /** alias to createSqlAdapter */
+    $sqlAdapter(key: string): SqlAdapter;
+    /** alias to createReplicaAdapter */
+    $replicaSqlAdapter(key: string): SqlAdapter;
+    /** alias to createShardSqlAdapter */
+    $shardSqlAdapter(key: string): SqlAdapter;
+    /** alias to createXlsAdapter */
+    $xlsAdapter(key: string): XlsAdapter;
+    $reloadConfig(): Promise<void>;
     /**
      * track a adapter
      * @param adapter adapter to track

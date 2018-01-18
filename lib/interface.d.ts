@@ -12,7 +12,10 @@ import vm = require("vm");
  * interface for ConfigStore
  */
 export interface IConfigSource {
+    /** get a config for key */
     get(key: string): any;
+    /** reload the config store */
+    reload(): Promise<void>;
 }
 /**
  * interface for ScriptStore

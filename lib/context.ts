@@ -121,10 +121,34 @@ export class Context {
   }
 
   /**
-   * same as runScript, suggested to use in inner scope
+   * alias to runScript
    */
   public async $load(name: string, input?: any): Promise<any> {
     return this.runScript(name, input);
+  }
+
+  /** alias to createSqlAdapter */
+  public $sqlAdapter(key: string): SqlAdapter {
+    return this.createSqlAdapter(key);
+  }
+
+  /** alias to createReplicaAdapter */
+  public $replicaSqlAdapter(key: string): SqlAdapter {
+    return this.createReplicaSqlAdapter(key);
+  }
+
+  /** alias to createShardSqlAdapter */
+  public $shardSqlAdapter(key: string): SqlAdapter {
+    return this.createShardSqlAdapter(key);
+  }
+
+  /** alias to createXlsAdapter */
+  public $xlsAdapter(key: string): XlsAdapter {
+    return this.createXlsAdapter(key);
+  }
+
+  public async $reloadConfig(): Promise<void> {
+    await this.configSource.reload();
   }
 
   /**
