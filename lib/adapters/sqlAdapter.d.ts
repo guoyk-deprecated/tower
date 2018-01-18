@@ -13,9 +13,17 @@ import { IAdapter, IConfigSource } from "../interface";
  */
 export interface ISqlQueryResult {
     /** sql query results */
-    results: any;
-    /** extra */
-    fields: mysql.FieldInfo[];
+    rows: any[];
+    /** insertIds */
+    insertIds: number[];
+    /** affectedRows */
+    affectedRows: number;
+    /** changedRows */
+    changedRows: number;
+}
+export interface ISqlExecuteResult {
+    results?: any;
+    fields?: mysql.FieldInfo[];
 }
 /**
  * option of sql query
@@ -24,7 +32,7 @@ export interface ISqlQueryOption {
     /** use the master node if this adapter supports replica */
     master?: boolean;
     /** id to lookup shard if this adapter supports sharding */
-    shardOf?: number;
+    shardOf?: number | string;
 }
 export declare enum SqlAdapterType {
     Single = 0,
@@ -69,8 +77,9 @@ export declare class SqlAdapter implements IAdapter {
      * end and clean all internal connections
      */
     dispose(): void;
-    private getConnection(option?);
-    private getShardConnectionByKey(key, option?);
+    private executeSql(conn, sql, args?, optons?);
+    private getConnections(option?);
+    private getShardConnectionsByKey(key, option?);
     private getReplicaConnectionByKey(key, option?);
     private removeConnection(conn);
     private getConnectionByKey(key);

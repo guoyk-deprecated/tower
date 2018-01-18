@@ -15,9 +15,18 @@ import {IAdapter, IConfigSource} from "../interface";
  */
 export interface ISqlQueryResult {
   /** sql query results */
-  results: any;
-  /** extra */
-  fields: mysql.FieldInfo[];
+  rows: any[];
+  /** insertIds */
+  insertIds: number[];
+  /** affectedRows */
+  affectedRows: number;
+  /** changedRows */
+  changedRows: number;
+}
+
+export interface ISqlExecuteResult {
+  results?: any;
+  fields?: mysql.FieldInfo[];
 }
 
 /**
@@ -27,7 +36,7 @@ export interface ISqlQueryOption {
   /** use the master node if this adapter supports replica */
   master?: boolean;
   /** id to lookup shard if this adapter supports sharding */
-  shardOf?: number;
+  shardOf?: number | string;
 }
 
 export enum SqlAdapterType {
@@ -124,6 +133,30 @@ function findShardKeyById(id: number, config: ISqlShardConfig): string {
   throw new Error(`shard not found for ID=${id}`);
 }
 
+function compactExecutionResults(results: ISqlExecuteResult[]): ISqlQueryResult {
+  const ret: ISqlQueryResult =  {
+    affectedRows: 0,
+    changedRows: 0,
+    insertIds: [],
+    rows: [],
+  };
+  for (const result of results) {
+    if (Array.isArray(result.results)) {
+      ret.rows = ret.rows.concat(result.results);
+    }
+    if (result.results.insertId) {
+      ret.insertIds.push(result.results.insertId);
+    }
+    if (result.results.affectedRows) {
+      ret.affectedRows += result.results.affectedRows;
+    }
+    if (result.results.changedRows) {
+      ret.changedRows += result.results.changedRows;
+    }
+  }
+  return ret;
+}
+
 export class SqlAdapter implements IAdapter {
   public readonly key: string;
   public readonly configSource: IConfigSource;
@@ -147,20 +180,14 @@ export class SqlAdapter implements IAdapter {
    * @param option query option
    */
   public async query(sql: string, args?: any, option?: ISqlQueryOption): Promise<ISqlQueryResult> {
-    const conn = this.getConnection(option);
-    return new Promise<ISqlQueryResult>((resolve, reject) => {
-      conn.query(sql, args, (error: mysql.MysqlError | null, results?: any, fields?: mysql.FieldInfo[]) => {
-        if (error == null) {
-          resolve({
-            fields: fields || [],
-            results: results || [],
-          });
-        } else {
-          reject(error);
-        }
-      });
-    });
+    const conns = this.getConnections(option);
+    const results = [];
+    for (const conn of conns) {
+      results.push(await this.executeSql(conn, sql, args, option));
+    }
+    return compactExecutionResults(results);
   }
+
   /**
    * end and clean all internal connections
    */
@@ -171,26 +198,45 @@ export class SqlAdapter implements IAdapter {
     this.conns.clear();
   }
 
-  private getConnection(option?: ISqlQueryOption): mysql.Connection {
+  private async executeSql(
+    conn: mysql.Connection, sql: string, args?: any, optons?: ISqlQueryOption): Promise<ISqlExecuteResult> {
+    return new Promise<ISqlExecuteResult>((resolve, reject) => {
+      conn.query(sql, args, (error: mysql.MysqlError | null, results?: any, fields?: mysql.FieldInfo[]) => {
+        if (error == null) {
+          resolve({fields, results});
+        } else {
+          reject(error);
+        }
+      });
+    });
+  }
+
+  private getConnections(option?: ISqlQueryOption): mysql.Connection[] {
     switch (this.type) {
       case SqlAdapterType.Single:
-        return this.getConnectionByKey(this.key);
+        return [this.getConnectionByKey(this.key)];
       case SqlAdapterType.Replica:
-        return this.getReplicaConnectionByKey(this.key, option);
+        return [this.getReplicaConnectionByKey(this.key, option)];
       case SqlAdapterType.Shard:
-        return this.getShardConnectionByKey(this.key, option);
+        return this.getShardConnectionsByKey(this.key, option);
       default:
         throw new Error(`invalid sql adapter type ${this.type}`);
     }
   }
 
-  private getShardConnectionByKey(key: string, option?: ISqlQueryOption): mysql.Connection {
+  private getShardConnectionsByKey(key: string, option?: ISqlQueryOption): mysql.Connection[] {
     const config = this.configSource.get(key) as ISqlShardConfig;
     if (option == null || option.shardOf == null) {
       throw new Error(`option.shardOf not set for shard mysql adapter`);
     }
-    const replicaKey = findShardKeyById(option.shardOf, config);
-    return this.getReplicaConnectionByKey(replicaKey, option);
+    if (typeof option.shardOf === "number") {
+      const replicaKey = findShardKeyById(option.shardOf, config);
+      return [this.getReplicaConnectionByKey(replicaKey, option)];
+    } else if (option.shardOf === "all") {
+      return config.members.map((replicaKey) => this.getReplicaConnectionByKey(replicaKey, option));
+    } else {
+      throw new Error(`invalid parameter set to queryOption.shardOf`);
+    }
   }
 
   private getReplicaConnectionByKey(key: string, option?: ISqlQueryOption): mysql.Connection {

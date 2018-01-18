@@ -6,6 +6,7 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
+import assert = require("assert");
 import path = require("path");
 import {Tower} from "../";
 
@@ -18,9 +19,14 @@ describe("SqlAdapter", () => {
          await tower.load();
          const context = tower.createContext();
          const sqlAdapter = context.createShardSqlAdapter("test-split");
-         await sqlAdapter.query("SELECT COUNT(*) FROM test;", null, {
-             shardOf: 100001,
+         const ret = await sqlAdapter.query("SELECT * FROM test;", null, {
+             shardOf: "all",
          });
          context.dispose();
+         assert.equal(ret.rows.length, 2);
+         assert.equal(ret.rows[0].id, 1);
+         assert.equal(ret.rows[0].value, "a");
+         assert.equal(ret.rows[1].id, 1);
+         assert.equal(ret.rows[1].value, "a");
      });
  });
