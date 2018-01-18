@@ -55,7 +55,16 @@ export class Tower {
       const request = {};
       Object.assign(request, ctx.request.query);
       Object.assign(request, ctx.request.body);
-      ctx.response.body = await tctx.runScript(sanitizePath(ctx.path), request);
+      try {
+        ctx.response.body =
+            await tctx.runScript(sanitizePath(ctx.path), request);
+      } catch (e) {
+        ctx.response.body = {
+          errCode: 9999,
+          message: e.message,
+        };
+      }
+      tctx.dispose();
     });
     return new Promise((resolve, reject) => {
       app.listen(this.port, () => {
