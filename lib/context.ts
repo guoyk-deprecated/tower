@@ -9,13 +9,15 @@
 
 import vm = require("vm");
 import * as utils from "../utils";
+import {IAdapter} from "./adapters/adapter";
 import {SqlAdapter, SqlAdapterType} from "./adapters/sqlAdapter";
-import { XlsAdapter } from "./adapters/xlsAdapter";
-import {IAdapter, IConfigSource, IScriptSource} from "./interface";
+import {XlsAdapter} from "./adapters/xlsAdapter";
+import {ConfigStore} from "./configStore";
+import {ScriptStore} from "./scriptStore";
 
 export interface IContextOption {
-  configSource: IConfigSource;
-  scriptSource: IScriptSource;
+  configSource: ConfigStore;
+  scriptSource: ScriptStore;
 }
 
 /**
@@ -23,9 +25,9 @@ export interface IContextOption {
  */
 export class Context {
   /** config source */
-  public readonly configSource: IConfigSource;
+  public readonly configSource: ConfigStore;
   /** script source */
-  public readonly scriptSource: IScriptSource;
+  public readonly scriptSource: ScriptStore;
   /** all living adapters */
   public readonly adapters: Set<IAdapter>;
   /** defined functions */

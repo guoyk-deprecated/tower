@@ -10,7 +10,8 @@
   import fs = require("fs-extra");
   import path = require("path");
   import xlsx = require("xlsx");
-  import {IAdapter, IConfigSource} from "../interface";
+  import {ConfigStore} from "../configStore";
+  import {IAdapter} from "./adapter";
 
   export const DEFAULT_SHEET_NAME = "main";
 
@@ -23,7 +24,7 @@
 
   export interface IXlsAdapterOption {
      key: string;
-     configSource: IConfigSource;
+     configSource: ConfigStore;
  }
 
   interface IXlsAdapterConfig {
@@ -33,7 +34,7 @@
   export class XlsAdapter implements IAdapter {
 
     public readonly key: string;
-    public readonly configSource: IConfigSource;
+    public readonly configSource: ConfigStore;
 
     constructor(option: IXlsAdapterOption) {
         this.key = option.key;

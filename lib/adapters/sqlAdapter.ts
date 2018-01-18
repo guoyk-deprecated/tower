@@ -8,7 +8,8 @@
  */
 
 import mysql = require("mysql");
-import {IAdapter, IConfigSource} from "../interface";
+import {ConfigStore} from "../configStore";
+import {IAdapter} from "./adapter";
 
 /**
  * result of sql query
@@ -51,7 +52,7 @@ export enum SqlAdapterType {
  * option to construct a SqlAdapter
  */
 export interface ISqlAdapterOption {
-  configSource: IConfigSource;
+  configSource: ConfigStore;
   key: string;
   type: SqlAdapterType;
 }
@@ -72,7 +73,7 @@ export interface ISqlShardRange {
 }
 
 function validateSqlConfig(
-    key: string, type: SqlAdapterType, configSource: IConfigSource) {
+    key: string, type: SqlAdapterType, configSource: ConfigStore) {
   if (typeof key !== "string") {
     throw new Error(`key of sql config must be string`);
   }
@@ -161,7 +162,7 @@ function compactExecutionResults(results: ISqlExecuteResult[]): ISqlQueryResult 
 
 export class SqlAdapter implements IAdapter {
   public readonly key: string;
-  public readonly configSource: IConfigSource;
+  public readonly configSource: ConfigStore;
   public readonly type: SqlAdapterType;
   private seqId: number;
   private conns: Map<string, mysql.Connection>;

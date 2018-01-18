@@ -1,7 +1,6 @@
 /// <reference types="node" />
 import vm = require("vm");
-import { IScriptSource } from "./interface";
-export declare class ScriptStore implements IScriptSource {
+export declare class ScriptStore {
     readonly directory: string;
     private cache;
     /**

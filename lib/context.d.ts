@@ -1,18 +1,20 @@
+import { IAdapter } from "./adapters/adapter";
 import { SqlAdapter } from "./adapters/sqlAdapter";
 import { XlsAdapter } from "./adapters/xlsAdapter";
-import { IAdapter, IConfigSource, IScriptSource } from "./interface";
+import { ConfigStore } from "./configStore";
+import { ScriptStore } from "./scriptStore";
 export interface IContextOption {
-    configSource: IConfigSource;
-    scriptSource: IScriptSource;
+    configSource: ConfigStore;
+    scriptSource: ScriptStore;
 }
 /**
  * context is used to track creation and disposing of adapters
  */
 export declare class Context {
     /** config source */
-    readonly configSource: IConfigSource;
+    readonly configSource: ConfigStore;
     /** script source */
-    readonly scriptSource: IScriptSource;
+    readonly scriptSource: ScriptStore;
     /** all living adapters */
     readonly adapters: Set<IAdapter>;
     /** defined functions */

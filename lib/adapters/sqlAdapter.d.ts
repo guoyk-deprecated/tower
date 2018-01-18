@@ -7,7 +7,8 @@
  * https://opensource.org/licenses/MIT
  */
 import mysql = require("mysql");
-import { IAdapter, IConfigSource } from "../interface";
+import { ConfigStore } from "../configStore";
+import { IAdapter } from "./adapter";
 /**
  * result of sql query
  */
@@ -45,7 +46,7 @@ export declare enum SqlAdapterType {
  * option to construct a SqlAdapter
  */
 export interface ISqlAdapterOption {
-    configSource: IConfigSource;
+    configSource: ConfigStore;
     key: string;
     type: SqlAdapterType;
 }
@@ -63,7 +64,7 @@ export interface ISqlShardRange {
 }
 export declare class SqlAdapter implements IAdapter {
     readonly key: string;
-    readonly configSource: IConfigSource;
+    readonly configSource: ConfigStore;
     readonly type: SqlAdapterType;
     private seqId;
     private conns;

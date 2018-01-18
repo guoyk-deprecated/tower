@@ -1,12 +1,13 @@
-import { IAdapter, IConfigSource } from "../interface";
+import { ConfigStore } from "../configStore";
+import { IAdapter } from "./adapter";
 export declare const DEFAULT_SHEET_NAME = "main";
 export interface IXlsAdapterOption {
     key: string;
-    configSource: IConfigSource;
+    configSource: ConfigStore;
 }
 export declare class XlsAdapter implements IAdapter {
     readonly key: string;
-    readonly configSource: IConfigSource;
+    readonly configSource: ConfigStore;
     constructor(option: IXlsAdapterOption);
     /**
      * write a xls file to directory

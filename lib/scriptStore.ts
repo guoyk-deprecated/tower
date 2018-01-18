@@ -11,7 +11,6 @@ import fs = require("fs-extra");
 import path = require("path");
 import vm = require("vm");
 import {sanitizePathComponents} from "../utils";
-import {IScriptSource} from "./interface";
 
 interface IScriptCache {
   /// full path of script file
@@ -22,7 +21,7 @@ interface IScriptCache {
   script: vm.Script;
 }
 
-export class ScriptStore implements IScriptSource {
+export class ScriptStore {
   public readonly directory: string;
 
   private cache: Map<string, IScriptCache>;
