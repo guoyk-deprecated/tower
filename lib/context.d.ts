@@ -7,6 +7,7 @@
  * https://opensource.org/licenses/MIT
  */
 import { SqlAdapter } from "./adapters/sqlAdapter";
+import { XlsAdapter } from "./adapters/xlsAdapter";
 import { IAdapter, IConfigSource, IScriptSource } from "./interface";
 export interface IContextOption {
     configSource: IConfigSource;
@@ -46,6 +47,7 @@ export declare class Context {
      * @param key config key
      */
     createShardSqlAdapter(key: string): SqlAdapter;
+    createXlsAdapter(key: string): XlsAdapter;
     /**
      * execute a script with given request
      * @param name script name

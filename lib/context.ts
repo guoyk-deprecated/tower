@@ -7,6 +7,7 @@
  * https://opensource.org/licenses/MIT
  */
 import {SqlAdapter, SqlAdapterType} from "./adapters/sqlAdapter";
+import { XlsAdapter } from "./adapters/xlsAdapter";
 import {IAdapter, IConfigSource, IScriptSource} from "./interface";
 
 export interface IContextOption {
@@ -79,6 +80,13 @@ export class Context {
       key,
       type: SqlAdapterType.Shard,
     })) as SqlAdapter;
+  }
+
+  public createXlsAdapter(key: string): XlsAdapter {
+    return this.track(new XlsAdapter({
+      configSource: this.configSource,
+      key,
+    })) as XlsAdapter;
   }
 
   /**
