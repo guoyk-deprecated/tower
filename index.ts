@@ -6,6 +6,8 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
+import cron = require("cron");
+import { CronJob } from "cron";
 import Koa = require("koa");
 import KoaBody = require("koa-body");
 import {ConfigStore} from "./lib/configStore";
@@ -29,11 +31,13 @@ export class Tower {
   public readonly configStore: ConfigStore;
   public readonly scriptStore: ScriptStore;
   public readonly port: number;
+  public readonly cronJobs: Set<cron.CronJob>;
 
   public constructor(config: ITowerOption) {
     this.configStore = new ConfigStore(config.configDir);
     this.scriptStore = new ScriptStore(config.scriptDir);
     this.port = config.port || 3000;
+    this.cronJobs = new Set();
   }
 
   /**
@@ -72,6 +76,18 @@ export class Tower {
         resolve();
       });
     });
+  }
+
+  /**
+   * register a cron job
+   * @param schedule schedule cron syntax
+   * @param scriptName script name to run
+   */
+  public registerCron(schedule: string, scriptName: string) {
+    this.cronJobs.add(new CronJob(schedule, () => {
+      const context = this.createContext();
+      context.runScript(scriptName);
+    }));
   }
 
   /**

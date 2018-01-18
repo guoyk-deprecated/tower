@@ -1,13 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * index.ts
- *
- * Copyright (c) 2018 Yanke Guo <guoyk.cn@gmail.com>
- *
- * This software is released under the MIT License.
- * https://opensource.org/licenses/MIT
- */
+const cron_1 = require("cron");
 const Koa = require("koa");
 const KoaBody = require("koa-body");
 const configStore_1 = require("./lib/configStore");
@@ -22,6 +15,7 @@ class Tower {
         this.configStore = new configStore_1.ConfigStore(config.configDir);
         this.scriptStore = new scriptStore_1.ScriptStore(config.scriptDir);
         this.port = config.port || 3000;
+        this.cronJobs = new Set();
     }
     /**
      * load all internal components
@@ -59,6 +53,17 @@ class Tower {
                 resolve();
             });
         });
+    }
+    /**
+     * register a cron job
+     * @param schedule schedule cron syntax
+     * @param scriptName script name to run
+     */
+    registerCron(schedule, scriptName) {
+        this.cronJobs.add(new cron_1.CronJob(schedule, () => {
+            const context = this.createContext();
+            context.runScript(scriptName);
+        }));
     }
     /**
      * create a new context
