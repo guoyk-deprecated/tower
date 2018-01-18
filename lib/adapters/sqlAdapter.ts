@@ -129,7 +129,7 @@ function findShardKeyById(id: number, config: ISqlShardConfig): string {
         continue;
       }
     }
-    return config.members[i];
+    return config.members[i % config.members.length];
   }
 
   throw new Error(`shard not found for ID=${id}`);
@@ -202,7 +202,7 @@ export class SqlAdapter implements IAdapter {
     for (const id of ids) {
       if (option) {
         // assign shardOf automatically
-        option.shardOf = option.shardOf || parseInt(id) || "all";
+        option.shardOf = option.shardOf || Number(id) || "all";
       }
       const singleResult = await this.query(sql, [id], option);
       for (const row of singleResult.rows) {

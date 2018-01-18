@@ -47,6 +47,7 @@ class Tower {
             }
             catch (e) {
                 ctx.response.body = {
+                    detail: e.stack,
                     errCode: 9999,
                     message: e.message,
                 };
