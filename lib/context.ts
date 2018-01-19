@@ -10,14 +10,15 @@
 import vm = require("vm");
 import * as utils from "../utils";
 import {IAdapter} from "./adapters/adapter";
+import { RedisAdapter } from "./adapters/redisAdapter";
 import {SqlAdapter, SqlAdapterType} from "./adapters/sqlAdapter";
 import {XlsAdapter} from "./adapters/xlsAdapter";
 import {ConfigStore} from "./configStore";
 import {ScriptStore} from "./scriptStore";
 
 export interface IContextOption {
-  configSource: ConfigStore;
-  scriptSource: ScriptStore;
+  configStore: ConfigStore;
+  scriptStore: ScriptStore;
 }
 
 /**
@@ -25,9 +26,9 @@ export interface IContextOption {
  */
 export class Context {
   /** config source */
-  public readonly configSource: ConfigStore;
+  public readonly configStore: ConfigStore;
   /** script source */
-  public readonly scriptSource: ScriptStore;
+  public readonly scriptStore: ScriptStore;
   /** all living adapters */
   public readonly adapters: Set<IAdapter>;
   /** defined functions */
@@ -38,8 +39,8 @@ export class Context {
    * @param configStore config store
    */
   constructor(option: IContextOption) {
-    this.configSource = option.configSource;
-    this.scriptSource = option.scriptSource;
+    this.configStore = option.configStore;
+    this.scriptStore = option.scriptStore;
     this.adapters = new Set();
     this.cache = new Map();
   }
@@ -63,7 +64,7 @@ export class Context {
    */
   public createSqlAdapter(key: string): SqlAdapter {
     return this.track(new SqlAdapter({
-      configSource: this.configSource,
+      configStore: this.configStore,
       key,
       type: SqlAdapterType.Single,
     })) as SqlAdapter;
@@ -73,9 +74,9 @@ export class Context {
    * create a replica sql adapter
    * @param key config key
    */
-  public createReplicaSqlAdapter(key: string): SqlAdapter {
+  public createSqlReplicaAdapter(key: string): SqlAdapter {
     return this.track(new SqlAdapter({
-      configSource: this.configSource,
+      configStore: this.configStore,
       key,
       type: SqlAdapterType.Replica,
     })) as SqlAdapter;
@@ -85,9 +86,9 @@ export class Context {
    * create a shard sql adapter
    * @param key config key
    */
-  public createShardSqlAdapter(key: string): SqlAdapter {
+  public createSqlShardAdapter(key: string): SqlAdapter {
     return this.track(new SqlAdapter({
-      configSource: this.configSource,
+      configStore: this.configStore,
       key,
       type: SqlAdapterType.Shard,
     })) as SqlAdapter;
@@ -95,9 +96,25 @@ export class Context {
 
   public createXlsAdapter(key: string): XlsAdapter {
     return this.track(new XlsAdapter({
-      configSource: this.configSource,
+      configStore: this.configStore,
       key,
     })) as XlsAdapter;
+  }
+
+  public createRedisAdapter(key: string): RedisAdapter {
+    return this.track(new RedisAdapter({
+      cluster: false,
+      configStore: this.configStore,
+      key,
+    })) as RedisAdapter;
+  }
+
+  public createRedisClusterAdapter(key: string): RedisAdapter {
+    return this.track(new RedisAdapter({
+      cluster: true,
+      configStore: this.configStore,
+      key,
+    })) as RedisAdapter;
   }
 
   /**
@@ -110,7 +127,7 @@ export class Context {
     let func = this.cache.get(name);
     if (func == null) {
       // load a vm.Script object from script file
-      const script = await this.scriptSource.getScript(name);
+      const script = await this.scriptStore.getScript(name);
       // run the script and cache the function
       func = script.runInThisContext();
     }
@@ -135,13 +152,13 @@ export class Context {
   }
 
   /** alias to createReplicaAdapter */
-  public $replicaSqlAdapter(key: string): SqlAdapter {
-    return this.createReplicaSqlAdapter(key);
+  public $sqlReplicaAdapter(key: string): SqlAdapter {
+    return this.createSqlReplicaAdapter(key);
   }
 
-  /** alias to createShardSqlAdapter */
-  public $shardSqlAdapter(key: string): SqlAdapter {
-    return this.createShardSqlAdapter(key);
+  /** alias to createSqlShardAdapter */
+  public $sqlShardAdapter(key: string): SqlAdapter {
+    return this.createSqlShardAdapter(key);
   }
 
   /** alias to createXlsAdapter */
@@ -149,8 +166,16 @@ export class Context {
     return this.createXlsAdapter(key);
   }
 
+  public $redisAdapter(key: string): RedisAdapter {
+    return this.createRedisAdapter(key);
+  }
+
+  public $redisClusterAdapter(key: string): RedisAdapter {
+    return this.createRedisClusterAdapter(key);
+  }
+
   public async $reloadConfig(): Promise<void> {
-    await this.configSource.reload();
+    await this.configStore.reload();
   }
 
   /**

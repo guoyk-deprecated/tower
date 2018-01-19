@@ -70,8 +70,8 @@ class Tower {
      */
     createContext() {
         return new context_1.Context({
-            configSource: this.configStore,
-            scriptSource: this.scriptStore,
+            configStore: this.configStore,
+            scriptStore: this.scriptStore,
         });
     }
 }

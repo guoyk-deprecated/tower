@@ -18,7 +18,7 @@ describe("SqlAdapter", () => {
     });
     await tower.load();
     const context = tower.createContext();
-    const sqlAdapter = context.createShardSqlAdapter("test-split");
+    const sqlAdapter = context.createSqlShardAdapter("test-split");
     const ret = await sqlAdapter.query("SELECT * FROM test;", null, {
       shardOf: "all",
     });

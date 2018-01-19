@@ -95,8 +95,8 @@ export class Tower {
    */
   public createContext(): Context {
     return new Context({
-      configSource: this.configStore,
-      scriptSource: this.scriptStore,
+      configStore: this.configStore,
+      scriptStore: this.scriptStore,
     });
   }
 }

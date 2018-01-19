@@ -1,20 +1,21 @@
 import { IAdapter } from "./adapters/adapter";
+import { RedisAdapter } from "./adapters/redisAdapter";
 import { SqlAdapter } from "./adapters/sqlAdapter";
 import { XlsAdapter } from "./adapters/xlsAdapter";
 import { ConfigStore } from "./configStore";
 import { ScriptStore } from "./scriptStore";
 export interface IContextOption {
-    configSource: ConfigStore;
-    scriptSource: ScriptStore;
+    configStore: ConfigStore;
+    scriptStore: ScriptStore;
 }
 /**
  * context is used to track creation and disposing of adapters
  */
 export declare class Context {
     /** config source */
-    readonly configSource: ConfigStore;
+    readonly configStore: ConfigStore;
     /** script source */
-    readonly scriptSource: ScriptStore;
+    readonly scriptStore: ScriptStore;
     /** all living adapters */
     readonly adapters: Set<IAdapter>;
     /** defined functions */
@@ -37,13 +38,15 @@ export declare class Context {
      * create a replica sql adapter
      * @param key config key
      */
-    createReplicaSqlAdapter(key: string): SqlAdapter;
+    createSqlReplicaAdapter(key: string): SqlAdapter;
     /**
      * create a shard sql adapter
      * @param key config key
      */
-    createShardSqlAdapter(key: string): SqlAdapter;
+    createSqlShardAdapter(key: string): SqlAdapter;
     createXlsAdapter(key: string): XlsAdapter;
+    createRedisAdapter(key: string): RedisAdapter;
+    createRedisClusterAdapter(key: string): RedisAdapter;
     /**
      * execute a script with given request
      * @param name script name
@@ -58,11 +61,13 @@ export declare class Context {
     /** alias to createSqlAdapter */
     $sqlAdapter(key: string): SqlAdapter;
     /** alias to createReplicaAdapter */
-    $replicaSqlAdapter(key: string): SqlAdapter;
-    /** alias to createShardSqlAdapter */
-    $shardSqlAdapter(key: string): SqlAdapter;
+    $sqlReplicaAdapter(key: string): SqlAdapter;
+    /** alias to createSqlShardAdapter */
+    $sqlShardAdapter(key: string): SqlAdapter;
     /** alias to createXlsAdapter */
     $xlsAdapter(key: string): XlsAdapter;
+    $redisAdapter(key: string): RedisAdapter;
+    $redisClusterAdapter(key: string): RedisAdapter;
     $reloadConfig(): Promise<void>;
     /**
      * track a adapter

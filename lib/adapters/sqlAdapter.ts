@@ -52,7 +52,7 @@ export enum SqlAdapterType {
  * option to construct a SqlAdapter
  */
 export interface ISqlAdapterOption {
-  configSource: ConfigStore;
+  configStore: ConfigStore;
   key: string;
   type: SqlAdapterType;
 }
@@ -73,37 +73,37 @@ export interface ISqlShardRange {
 }
 
 function validateSqlConfig(
-    key: string, type: SqlAdapterType, configSource: ConfigStore) {
+    key: string, type: SqlAdapterType, configStore: ConfigStore) {
   if (typeof key !== "string") {
     throw new Error(`key of sql config must be string`);
   }
   switch (type) {
     case SqlAdapterType.Single: {
-      const config = configSource.get(key);
+      const config = configStore.get(key);
       if (typeof config !== "object") {
         throw new Error(`invalid sql config for key ${key}`);
       }
       return;
     }
     case SqlAdapterType.Replica: {
-      const config = configSource.get(key) as ISqlReplicaConfig;
+      const config = configStore.get(key) as ISqlReplicaConfig;
       if (typeof config !== "object" || !config.master) {
         throw new Error(`invalid replica sql config for key ${key}`);
       }
       if (config.slaves && Array.isArray(config.slaves)) {
         for (const slaveKey of config.slaves) {
-          validateSqlConfig(slaveKey, SqlAdapterType.Single, configSource);
+          validateSqlConfig(slaveKey, SqlAdapterType.Single, configStore);
         }
       }
       return;
     }
     case SqlAdapterType.Shard: {
-      const config = configSource.get(key) as ISqlShardConfig;
+      const config = configStore.get(key) as ISqlShardConfig;
       if (typeof config !== "object" || !Array.isArray(config.members) || !Array.isArray(config.ranges)) {
         throw new Error(`invalid shard sql config for key ${key}`);
       }
       for (const replicaKey of config.members) {
-        validateSqlConfig(replicaKey, SqlAdapterType.Replica, configSource);
+        validateSqlConfig(replicaKey, SqlAdapterType.Replica, configStore);
       }
       for (const shard of config.ranges) {
         if (typeof shard !== "object") {
@@ -162,18 +162,18 @@ function compactExecutionResults(results: ISqlExecuteResult[]): ISqlQueryResult 
 
 export class SqlAdapter implements IAdapter {
   public readonly key: string;
-  public readonly configSource: ConfigStore;
+  public readonly configStore: ConfigStore;
   public readonly type: SqlAdapterType;
   private seqId: number;
   private conns: Map<string, mysql.Connection>;
 
   constructor(option: ISqlAdapterOption) {
     this.key = option.key;
-    this.configSource = option.configSource;
+    this.configStore = option.configStore;
     this.type = option.type;
     this.seqId = 0;
     this.conns = new Map();
-    validateSqlConfig(this.key, this.type, this.configSource);
+    validateSqlConfig(this.key, this.type, this.configStore);
   }
 
   /**
@@ -216,6 +216,24 @@ export class SqlAdapter implements IAdapter {
   }
 
   /**
+   * get affected sql connections
+   *
+   * @param option query option
+   */
+  public getConnections(option?: ISqlQueryOption): mysql.Connection[] {
+    switch (this.type) {
+      case SqlAdapterType.Single:
+        return [this.getConnectionByKey(this.key)];
+      case SqlAdapterType.Replica:
+        return [this.getReplicaConnectionByKey(this.key, option)];
+      case SqlAdapterType.Shard:
+        return this.getShardConnectionsByKey(this.key, option);
+      default:
+        throw new Error(`invalid sql adapter type ${this.type}`);
+    }
+  }
+
+  /**
    * end and clean all internal connections
    */
   public dispose() {
@@ -238,21 +256,8 @@ export class SqlAdapter implements IAdapter {
     });
   }
 
-  private getConnections(option?: ISqlQueryOption): mysql.Connection[] {
-    switch (this.type) {
-      case SqlAdapterType.Single:
-        return [this.getConnectionByKey(this.key)];
-      case SqlAdapterType.Replica:
-        return [this.getReplicaConnectionByKey(this.key, option)];
-      case SqlAdapterType.Shard:
-        return this.getShardConnectionsByKey(this.key, option);
-      default:
-        throw new Error(`invalid sql adapter type ${this.type}`);
-    }
-  }
-
   private getShardConnectionsByKey(key: string, option?: ISqlQueryOption): mysql.Connection[] {
-    const config = this.configSource.get(key) as ISqlShardConfig;
+    const config = this.configStore.get(key) as ISqlShardConfig;
     if (option == null || option.shardOf == null) {
       throw new Error(`option.shardOf not set for shard mysql adapter`);
     }
@@ -267,7 +272,7 @@ export class SqlAdapter implements IAdapter {
   }
 
   private getReplicaConnectionByKey(key: string, option?: ISqlQueryOption): mysql.Connection {
-    const config = this.configSource.get(key) as ISqlReplicaConfig;
+    const config = this.configStore.get(key) as ISqlReplicaConfig;
     // use master if query option specified or no slave specified
     const master = (option && option.master) || !Array.isArray(config.slaves) || config.slaves.length === 0;
     if (master) {
@@ -294,7 +299,7 @@ export class SqlAdapter implements IAdapter {
     this.seqId++;
     let conn = this.conns.get(key);
     if (!conn) {
-      const config = this.configSource.get(key);
+      const config = this.configStore.get(key);
       conn = mysql.createConnection(config);
       conn.on("end", () => {
         this.removeConnection(conn!);

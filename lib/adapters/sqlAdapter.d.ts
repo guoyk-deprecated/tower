@@ -46,7 +46,7 @@ export declare enum SqlAdapterType {
  * option to construct a SqlAdapter
  */
 export interface ISqlAdapterOption {
-    configSource: ConfigStore;
+    configStore: ConfigStore;
     key: string;
     type: SqlAdapterType;
 }
@@ -64,7 +64,7 @@ export interface ISqlShardRange {
 }
 export declare class SqlAdapter implements IAdapter {
     readonly key: string;
-    readonly configSource: ConfigStore;
+    readonly configStore: ConfigStore;
     readonly type: SqlAdapterType;
     private seqId;
     private conns;
@@ -84,11 +84,16 @@ export declare class SqlAdapter implements IAdapter {
      */
     queryMap(sql: string, ids: Set<string>, option?: ISqlQueryOption): Promise<Map<string, any>>;
     /**
+     * get affected sql connections
+     *
+     * @param option query option
+     */
+    getConnections(option?: ISqlQueryOption): mysql.Connection[];
+    /**
      * end and clean all internal connections
      */
     dispose(): void;
     private executeSql(conn, sql, args?, optons?);
-    private getConnections(option?);
     private getShardConnectionsByKey(key, option?);
     private getReplicaConnectionByKey(key, option?);
     private removeConnection(conn);

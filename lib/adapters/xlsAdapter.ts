@@ -24,7 +24,7 @@
 
   export interface IXlsAdapterOption {
      key: string;
-     configSource: ConfigStore;
+     configStore: ConfigStore;
  }
 
   interface IXlsAdapterConfig {
@@ -34,11 +34,11 @@
   export class XlsAdapter implements IAdapter {
 
     public readonly key: string;
-    public readonly configSource: ConfigStore;
+    public readonly configStore: ConfigStore;
 
     constructor(option: IXlsAdapterOption) {
         this.key = option.key;
-        this.configSource = option.configSource;
+        this.configStore = option.configStore;
     }
 
     /**
@@ -51,7 +51,7 @@
         if (!name.toLowerCase().endsWith(".xls")) {
             name += ".xls";
         }
-        const config = this.configSource.get(this.key) as IXlsAdapterConfig;
+        const config = this.configStore.get(this.key) as IXlsAdapterConfig;
         await fs.mkdirp(path.join(config.output, theme));
         const fullPath = path.join(config.output, theme, name);
         const wb = xlsx.utils.book_new();
