@@ -41,11 +41,13 @@ class Tower {
      * @param name script name to run
      */
     registerCron(schedule, name) {
-        this.cronJobs.add(new cron_1.CronJob(schedule, () => {
+        const job = new cron_1.CronJob(schedule, () => {
             this.withContext(async (context) => {
                 await context.load(name);
             });
-        }));
+        });
+        job.start();
+        this.cronJobs.add(job);
     }
     /**
      * run function with new context and dispose that context

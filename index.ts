@@ -65,11 +65,13 @@ export class Tower {
    * @param name script name to run
    */
   public registerCron(schedule: string, name: string) {
-    this.cronJobs.add(new CronJob(schedule, () => {
+    const job = new CronJob(schedule, () => {
       this.withContext(async (context: TowerContext) => {
         await context.load(name);
       });
-    }));
+    });
+    job.start();
+    this.cronJobs.add(job);
   }
 
   /**
