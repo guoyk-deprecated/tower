@@ -7,21 +7,44 @@
  * https://opensource.org/licenses/MIT
  */
 
+import path = require("path");
+import scriptlet = require("scriptlet");
 import {IAdapter} from "./adapters/adapter";
 import {RedisAdapter} from "./adapters/redisAdapter";
 import {SqlAdapter, SqlAdapterType} from "./adapters/sqlAdapter";
 import {XlsAdapter} from "./adapters/xlsAdapter";
 import {ConfigStore} from "./configStore";
 
+export interface ITowerConfigOption {
+  configStore: ConfigStore;
+  scriptDir: string;
+}
+
 export class TowerContext implements IAdapter {
   /** internal config store */
   public readonly configStore: ConfigStore;
   /** tracked adapters */
   public readonly adapters: Set<IAdapter>;
+  /** script directory */
+  public readonly scriptDir: string;
 
-  constructor(configStore: ConfigStore) {
-    this.configStore = configStore;
+  constructor(option: ITowerConfigOption) {
+    this.configStore = option.configStore;
+    this.scriptDir = option.scriptDir;
     this.adapters = new Set();
+  }
+
+  /**
+   * load a scriptlet
+   * @param name script name
+   * @param input optional input
+   */
+  public async load(name: string, input?: any): Promise<any> {
+    const fullPath = path.join(this.scriptDir, name + ".js");
+    return scriptlet.run(fullPath, {
+      cache: scriptlet.MTIME,
+      extra: new Map([["$tower", this], ["$input", input]]),
+    });
   }
 
   /**

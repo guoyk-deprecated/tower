@@ -37,9 +37,9 @@ export declare class Tower {
     /**
      * register a cron job
      * @param schedule schedule cron syntax
-     * @param scriptName script name to run
+     * @param name script name to run
      */
-    registerCron(schedule: string, scriptName: string): void;
+    registerCron(schedule: string, name: string): void;
     /**
      * run function with new context and dispose that context
      * @param func function

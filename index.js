@@ -3,8 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const cron_1 = require("cron");
 const Koa = require("koa");
 const KoaBody = require("koa-body");
-const path = require("path");
-const scriptlet = require("scriptlet");
 const configStore_1 = require("./configStore");
 const context_1 = require("./context");
 const utils_1 = require("./utils");
@@ -40,16 +38,12 @@ class Tower {
     /**
      * register a cron job
      * @param schedule schedule cron syntax
-     * @param scriptName script name to run
+     * @param name script name to run
      */
-    registerCron(schedule, scriptName) {
+    registerCron(schedule, name) {
         this.cronJobs.add(new cron_1.CronJob(schedule, () => {
             this.withContext(async (context) => {
-                const fullPath = path.join(this.scriptDir, utils_1.sanitizePath(scriptName) + ".js");
-                await scriptlet.run(fullPath, {
-                    cache: scriptlet.MTIME,
-                    extra: new Map([["$tower", context]]),
-                });
+                await context.load(name);
             });
         }));
     }
@@ -66,23 +60,22 @@ class Tower {
      * create a TowerContext
      */
     createContext() {
-        return new context_1.TowerContext(this.configStore);
+        return new context_1.TowerContext({
+            configStore: this.configStore,
+            scriptDir: this.scriptDir,
+        });
     }
     /**
      * create Koa web handler
      */
     createWebHandler() {
         return async (ctx) => {
-            const fullPath = path.join(this.scriptDir, utils_1.sanitizePath(ctx.path) + ".js");
             const input = {};
             Object.assign(input, ctx.request.query);
             Object.assign(input, ctx.request.body);
             await this.withContext(async (context) => {
                 try {
-                    ctx.response.body = await scriptlet.run(fullPath, {
-                        cache: scriptlet.MTIME,
-                        extra: new Map([["$tower", context], ["$input", input]]),
-                    });
+                    ctx.response.body = await context.load(utils_1.sanitizePath(ctx.path), input);
                 }
                 catch (e) {
                     ctx.response

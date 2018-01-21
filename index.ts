@@ -11,8 +11,6 @@ import {CronJob} from "cron";
 import Koa = require("koa");
 import {Context} from "koa";
 import KoaBody = require("koa-body");
-import path = require("path");
-import scriptlet = require("scriptlet");
 import {ConfigStore} from "./configStore";
 import {TowerContext} from "./context";
 import {sanitizePath} from "./utils";
@@ -64,17 +62,12 @@ export class Tower {
   /**
    * register a cron job
    * @param schedule schedule cron syntax
-   * @param scriptName script name to run
+   * @param name script name to run
    */
-  public registerCron(schedule: string, scriptName: string) {
+  public registerCron(schedule: string, name: string) {
     this.cronJobs.add(new CronJob(schedule, () => {
       this.withContext(async (context: TowerContext) => {
-        const fullPath =
-            path.join(this.scriptDir, sanitizePath(scriptName) + ".js");
-        await scriptlet.run(fullPath, {
-          cache: scriptlet.MTIME,
-          extra: new Map<string, any>([["$tower", context]]),
-        });
+        await context.load(name);
       });
     }));
   }
@@ -93,7 +86,10 @@ export class Tower {
    * create a TowerContext
    */
   public createContext(): TowerContext {
-    return new TowerContext(this.configStore);
+    return new TowerContext({
+      configStore: this.configStore,
+      scriptDir: this.scriptDir,
+    });
   }
 
   /**
@@ -101,18 +97,12 @@ export class Tower {
    */
   private createWebHandler(): any {
     return async (ctx: Koa.Context) => {
-      const fullPath =
-          path.join(this.scriptDir, sanitizePath(ctx.path) + ".js");
       const input = {};
       Object.assign(input, ctx.request.query);
       Object.assign(input, ctx.request.body);
       await this.withContext(async (context: TowerContext) => {
         try {
-          ctx.response.body = await scriptlet.run(fullPath, {
-            cache: scriptlet.MTIME,
-            extra:
-                new Map<string, any>([["$tower", context], ["$input", input]]),
-          });
+          ctx.response.body = await context.load(sanitizePath(ctx.path), input);
         } catch (e) {
           ctx.response
               .body = {errCode: 9999, message: e.message, detail: e.stack};
