@@ -30,6 +30,6 @@ export declare class TowerContext implements IAdapter {
     sqlShardAdapter(key: string): SqlAdapter;
     redisAdapter(key: string): RedisAdapter;
     redisClusterAdapter(key: string): RedisAdapter;
-    XlsAdapter(key: string): XlsAdapter;
+    xlsAdapter(key: string): XlsAdapter;
     private track(adapter);
 }

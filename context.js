@@ -65,7 +65,7 @@ class TowerContext {
         this.track(adapter);
         return adapter;
     }
-    XlsAdapter(key) {
+    xlsAdapter(key) {
         const adapter = new xlsAdapter_1.XlsAdapter({ key, configStore: this.configStore });
         this.track(adapter);
         return adapter;

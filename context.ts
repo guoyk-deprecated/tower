@@ -92,7 +92,7 @@ export class TowerContext implements IAdapter {
     return adapter;
   }
 
-  public XlsAdapter(key: string): XlsAdapter {
+  public xlsAdapter(key: string): XlsAdapter {
     const adapter = new XlsAdapter({key, configStore: this.configStore});
     this.track(adapter);
     return adapter;
