@@ -22,7 +22,7 @@ class ConfigStore {
     /**
      * load all config entries from directory
      */
-    async reload() {
+    async load() {
         const files = await fs.readdir(this.directory);
         for (const file of files) {
             if (file.toLowerCase().endsWith(".json")) {

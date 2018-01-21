@@ -18,7 +18,7 @@ describe("XlsAdapter", () => {
         });
         await tower.load();
         const context = tower.createContext();
-        const xlsAdapter = context.createXlsAdapter("xls");
+        const xlsAdapter = context.XlsAdapter("xls");
         await xlsAdapter.write("testTheme", "test", [["A", "B", "C"], ["A1", "A2", "A3"]]);
         context.dispose();
     });

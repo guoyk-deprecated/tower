@@ -3,53 +3,36 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const cron_1 = require("cron");
 const Koa = require("koa");
 const KoaBody = require("koa-body");
-const configStore_1 = require("./lib/configStore");
-const context_1 = require("./lib/context");
-const scriptStore_1 = require("./lib/scriptStore");
+const path = require("path");
+const scriptlet = require("scriptlet");
+const configStore_1 = require("./configStore");
+const context_1 = require("./context");
 const utils_1 = require("./utils");
 /**
  * main class of Tower
  */
 class Tower {
     constructor(config) {
+        this.scriptDir = config.scriptDir;
         this.configStore = new configStore_1.ConfigStore(config.configDir);
-        this.scriptStore = new scriptStore_1.ScriptStore(config.scriptDir);
-        this.port = config.port || 3000;
         this.cronJobs = new Set();
+        this.webApp = new Koa();
+        this.webApp.use(KoaBody());
+        this.webApp.use(this.createWebHandler());
     }
     /**
      * load all internal components
      */
     async load() {
-        await this.configStore.reload();
+        await this.configStore.load();
     }
     /**
      * start the web server
+     * @param port port to listen
      */
-    async startWeb() {
-        const app = new Koa();
-        app.use(KoaBody());
-        app.use(async (ctx) => {
-            const tctx = this.createContext();
-            const path = utils_1.sanitizePath(ctx.path);
-            const request = {};
-            Object.assign(request, ctx.request.query);
-            Object.assign(request, ctx.request.body);
-            try {
-                ctx.response.body =
-                    await tctx.runScript(utils_1.sanitizePath(ctx.path), request);
-            }
-            catch (e) {
-                ctx.response.body = {
-                    detail: e.stack,
-                    errCode: 9999,
-                    message: e.message,
-                };
-            }
-            tctx.dispose();
-        });
+    async startWeb(port) {
         return new Promise((resolve, reject) => {
-            app.listen(this.port, () => {
+            this.webApp.listen(port, () => {
                 resolve();
             });
         });
@@ -61,18 +44,52 @@ class Tower {
      */
     registerCron(schedule, scriptName) {
         this.cronJobs.add(new cron_1.CronJob(schedule, () => {
-            const context = this.createContext();
-            context.runScript(scriptName);
+            this.withContext(async (context) => {
+                const fullPath = path.join(this.scriptDir, utils_1.sanitizePath(scriptName) + ".js");
+                await scriptlet.run(fullPath, {
+                    cache: scriptlet.MTIME,
+                    extra: new Map([["$tower", context]]),
+                });
+            });
         }));
     }
     /**
-     * create a new context
+     * run function with new context and dispose that context
+     * @param func function
+     */
+    async withContext(func) {
+        const context = this.createContext();
+        await func(context);
+        context.dispose();
+    }
+    /**
+     * create a TowerContext
      */
     createContext() {
-        return new context_1.Context({
-            configStore: this.configStore,
-            scriptStore: this.scriptStore,
-        });
+        return new context_1.TowerContext(this.configStore);
+    }
+    /**
+     * create Koa web handler
+     */
+    createWebHandler() {
+        return async (ctx) => {
+            const fullPath = path.join(this.scriptDir, utils_1.sanitizePath(ctx.path) + ".js");
+            const input = {};
+            Object.assign(input, ctx.request.query);
+            Object.assign(input, ctx.request.body);
+            await this.withContext(async (context) => {
+                try {
+                    ctx.response.body = await scriptlet.run(fullPath, {
+                        cache: scriptlet.MTIME,
+                        extra: new Map([["$tower", context], ["$input", input]]),
+                    });
+                }
+                catch (e) {
+                    ctx.response
+                        .body = { errCode: 9999, message: e.message, detail: e.stack };
+                }
+            });
+        };
     }
 }
 exports.Tower = Tower;

@@ -9,12 +9,12 @@
 
 import assert = require("assert");
 import path = require("path");
-import {ConfigStore} from "../lib/configStore";
+import {ConfigStore} from "../configStore";
 
 describe("ConfigStore", () => {
   it("should work with directory", async () => {
       const store = new ConfigStore(path.join(__dirname, "testConfig"));
-      await store.reload();
+      await store.load();
       let value = await store.get("key1");
       assert.equal(value, "value1");
       value = await store.get("key2");

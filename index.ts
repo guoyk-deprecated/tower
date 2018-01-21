@@ -7,21 +7,21 @@
  * https://opensource.org/licenses/MIT
  */
 import cron = require("cron");
-import { CronJob } from "cron";
+import {CronJob} from "cron";
 import Koa = require("koa");
+import {Context} from "koa";
 import KoaBody = require("koa-body");
-import {ConfigStore} from "./lib/configStore";
-import {Context} from "./lib/context";
-import {ScriptStore} from "./lib/scriptStore";
-import { sanitizePath } from "./utils";
+import path = require("path");
+import scriptlet = require("scriptlet");
+import {ConfigStore} from "./configStore";
+import {TowerContext} from "./context";
+import {sanitizePath} from "./utils";
 
 export interface ITowerOption {
   /** configuration directory */
   configDir: string;
   /** script directory */
   scriptDir: string;
-  /** port number for web service */
-  port?: number;
 }
 
 /**
@@ -29,50 +29,33 @@ export interface ITowerOption {
  */
 export class Tower {
   public readonly configStore: ConfigStore;
-  public readonly scriptStore: ScriptStore;
-  public readonly port: number;
   public readonly cronJobs: Set<cron.CronJob>;
+  public readonly scriptDir: string;
+  public readonly webApp: Koa;
 
   public constructor(config: ITowerOption) {
+    this.scriptDir = config.scriptDir;
     this.configStore = new ConfigStore(config.configDir);
-    this.scriptStore = new ScriptStore(config.scriptDir);
-    this.port = config.port || 3000;
     this.cronJobs = new Set();
+    this.webApp = new Koa();
+    this.webApp.use(KoaBody());
+    this.webApp.use(this.createWebHandler());
   }
 
   /**
    * load all internal components
    */
   public async load(): Promise<void> {
-    await this.configStore.reload();
+    await this.configStore.load();
   }
 
   /**
    * start the web server
+   * @param port port to listen
    */
-  public async startWeb() {
-    const app = new Koa();
-    app.use(KoaBody());
-    app.use(async (ctx) => {
-      const tctx = this.createContext();
-      const path = sanitizePath(ctx.path);
-      const request = {};
-      Object.assign(request, ctx.request.query);
-      Object.assign(request, ctx.request.body);
-      try {
-        ctx.response.body =
-            await tctx.runScript(sanitizePath(ctx.path), request);
-      } catch (e) {
-        ctx.response.body = {
-          detail: e.stack,
-          errCode: 9999,
-          message: e.message,
-        };
-      }
-      tctx.dispose();
-    });
+  public async startWeb(port: number) {
     return new Promise((resolve, reject) => {
-      app.listen(this.port, () => {
+      this.webApp.listen(port, () => {
         resolve();
       });
     });
@@ -85,18 +68,56 @@ export class Tower {
    */
   public registerCron(schedule: string, scriptName: string) {
     this.cronJobs.add(new CronJob(schedule, () => {
-      const context = this.createContext();
-      context.runScript(scriptName);
+      this.withContext(async (context: TowerContext) => {
+        const fullPath =
+            path.join(this.scriptDir, sanitizePath(scriptName) + ".js");
+        await scriptlet.run(fullPath, {
+          cache: scriptlet.MTIME,
+          extra: new Map<string, any>([["$tower", context]]),
+        });
+      });
     }));
   }
 
   /**
-   * create a new context
+   * run function with new context and dispose that context
+   * @param func function
    */
-  public createContext(): Context {
-    return new Context({
-      configStore: this.configStore,
-      scriptStore: this.scriptStore,
-    });
+  public async withContext(func: (context: TowerContext) => Promise<void>) {
+    const context = this.createContext();
+    await func(context);
+    context.dispose();
+  }
+
+  /**
+   * create a TowerContext
+   */
+  public createContext(): TowerContext {
+    return new TowerContext(this.configStore);
+  }
+
+  /**
+   * create Koa web handler
+   */
+  private createWebHandler(): any {
+    return async (ctx: Koa.Context) => {
+      const fullPath =
+          path.join(this.scriptDir, sanitizePath(ctx.path) + ".js");
+      const input = {};
+      Object.assign(input, ctx.request.query);
+      Object.assign(input, ctx.request.body);
+      await this.withContext(async (context: TowerContext) => {
+        try {
+          ctx.response.body = await scriptlet.run(fullPath, {
+            cache: scriptlet.MTIME,
+            extra:
+                new Map<string, any>([["$tower", context], ["$input", input]]),
+          });
+        } catch (e) {
+          ctx.response
+              .body = {errCode: 9999, message: e.message, detail: e.stack};
+        }
+      });
+    };
   }
 }

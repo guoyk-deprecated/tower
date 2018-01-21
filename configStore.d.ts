@@ -14,7 +14,7 @@ export declare class ConfigStore {
     /**
      * load all config entries from directory
      */
-    reload(): Promise<void>;
+    load(): Promise<void>;
     /**
      * get config value by key
      * @param key config key

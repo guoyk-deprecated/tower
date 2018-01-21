@@ -7,25 +7,23 @@
  * https://opensource.org/licenses/MIT
  */
 import cron = require("cron");
-import { ConfigStore } from "./lib/configStore";
-import { Context } from "./lib/context";
-import { ScriptStore } from "./lib/scriptStore";
+import Koa = require("koa");
+import { ConfigStore } from "./configStore";
+import { TowerContext } from "./context";
 export interface ITowerOption {
     /** configuration directory */
     configDir: string;
     /** script directory */
     scriptDir: string;
-    /** port number for web service */
-    port?: number;
 }
 /**
  * main class of Tower
  */
 export declare class Tower {
     readonly configStore: ConfigStore;
-    readonly scriptStore: ScriptStore;
-    readonly port: number;
     readonly cronJobs: Set<cron.CronJob>;
+    readonly scriptDir: string;
+    readonly webApp: Koa;
     constructor(config: ITowerOption);
     /**
      * load all internal components
@@ -33,8 +31,9 @@ export declare class Tower {
     load(): Promise<void>;
     /**
      * start the web server
+     * @param port port to listen
      */
-    startWeb(): Promise<{}>;
+    startWeb(port: number): Promise<{}>;
     /**
      * register a cron job
      * @param schedule schedule cron syntax
@@ -42,7 +41,16 @@ export declare class Tower {
      */
     registerCron(schedule: string, scriptName: string): void;
     /**
-     * create a new context
+     * run function with new context and dispose that context
+     * @param func function
      */
-    createContext(): Context;
+    withContext(func: (context: TowerContext) => Promise<void>): Promise<void>;
+    /**
+     * create a TowerContext
+     */
+    createContext(): TowerContext;
+    /**
+     * create Koa web handler
+     */
+    private createWebHandler();
 }
