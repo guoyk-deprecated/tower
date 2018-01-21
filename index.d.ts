@@ -30,6 +30,12 @@ export declare class Tower {
      */
     load(): Promise<void>;
     /**
+     * run a scriptlet
+     * @param name scriptlet name, relative to scriptDir
+     * @param extra extra options
+     */
+    runScriptlet(name: string, extra?: Map<string, any>): Promise<any>;
+    /**
      * start the web server
      * @param port port to listen
      */

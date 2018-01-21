@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const cron_1 = require("cron");
 const Koa = require("koa");
 const KoaBody = require("koa-body");
+const path = require("path");
+const scriptlet = require("scriptlet");
 const configStore_1 = require("./configStore");
 const context_1 = require("./context");
 const utils_1 = require("./utils");
@@ -25,6 +27,17 @@ class Tower {
         await this.configStore.load();
     }
     /**
+     * run a scriptlet
+     * @param name scriptlet name, relative to scriptDir
+     * @param extra extra options
+     */
+    async runScriptlet(name, extra) {
+        return scriptlet.run(path.join(this.scriptDir, name + ".js"), {
+            cache: scriptlet.MTIME,
+            extra,
+        });
+    }
+    /**
      * start the web server
      * @param port port to listen
      */
@@ -43,7 +56,7 @@ class Tower {
     registerCron(schedule, name) {
         const job = new cron_1.CronJob(schedule, () => {
             this.withContext(async (context) => {
-                await context.load(name);
+                await this.runScriptlet(name);
             });
         });
         job.start();
@@ -77,7 +90,7 @@ class Tower {
             Object.assign(input, ctx.request.body);
             await this.withContext(async (context) => {
                 try {
-                    ctx.response.body = await context.load(utils_1.sanitizePath(ctx.path), input);
+                    ctx.response.body = await this.runScriptlet(utils_1.sanitizePath(ctx.path), new Map([["$input", input]]));
                 }
                 catch (e) {
                     ctx.response

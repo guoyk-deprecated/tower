@@ -35,19 +35,6 @@ export class TowerContext implements IAdapter {
   }
 
   /**
-   * load a scriptlet
-   * @param name script name
-   * @param input optional input
-   */
-  public async load(name: string, input?: any): Promise<any> {
-    const fullPath = path.join(this.scriptDir, name + ".js");
-    return scriptlet.run(fullPath, {
-      cache: scriptlet.MTIME,
-      extra: new Map([["$tower", this], ["$input", input]]),
-    });
-  }
-
-  /**
    * dispose all tracked adapters
    */
   public dispose(): void {

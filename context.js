@@ -8,8 +8,6 @@
  * https://opensource.org/licenses/MIT
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-const path = require("path");
-const scriptlet = require("scriptlet");
 const redisAdapter_1 = require("./adapters/redisAdapter");
 const sqlAdapter_1 = require("./adapters/sqlAdapter");
 const xlsAdapter_1 = require("./adapters/xlsAdapter");
@@ -18,18 +16,6 @@ class TowerContext {
         this.configStore = option.configStore;
         this.scriptDir = option.scriptDir;
         this.adapters = new Set();
-    }
-    /**
-     * load a scriptlet
-     * @param name script name
-     * @param input optional input
-     */
-    async load(name, input) {
-        const fullPath = path.join(this.scriptDir, name + ".js");
-        return scriptlet.run(fullPath, {
-            cache: scriptlet.MTIME,
-            extra: new Map([["$tower", this], ["$input", input]]),
-        });
     }
     /**
      * dispose all tracked adapters

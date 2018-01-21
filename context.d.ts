@@ -16,12 +16,6 @@ export declare class TowerContext implements IAdapter {
     readonly scriptDir: string;
     constructor(option: ITowerConfigOption);
     /**
-     * load a scriptlet
-     * @param name script name
-     * @param input optional input
-     */
-    load(name: string, input?: any): Promise<any>;
-    /**
      * dispose all tracked adapters
      */
     dispose(): void;

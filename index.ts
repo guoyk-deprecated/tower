@@ -11,6 +11,8 @@ import {CronJob} from "cron";
 import Koa = require("koa");
 import {Context} from "koa";
 import KoaBody = require("koa-body");
+import path = require("path");
+import scriptlet = require("scriptlet");
 import {ConfigStore} from "./configStore";
 import {TowerContext} from "./context";
 import {sanitizePath} from "./utils";
@@ -48,6 +50,19 @@ export class Tower {
   }
 
   /**
+   * run a scriptlet
+   * @param name scriptlet name, relative to scriptDir
+   * @param extra extra options
+   */
+  public async runScriptlet(name: string, extra?: Map<string, any>):
+      Promise<any> {
+    return scriptlet.run(path.join(this.scriptDir, name + ".js"), {
+      cache: scriptlet.MTIME,
+      extra,
+    });
+  }
+
+  /**
    * start the web server
    * @param port port to listen
    */
@@ -67,7 +82,7 @@ export class Tower {
   public registerCron(schedule: string, name: string) {
     const job = new CronJob(schedule, () => {
       this.withContext(async (context: TowerContext) => {
-        await context.load(name);
+        await this.runScriptlet(name);
       });
     });
     job.start();
@@ -104,7 +119,9 @@ export class Tower {
       Object.assign(input, ctx.request.body);
       await this.withContext(async (context: TowerContext) => {
         try {
-          ctx.response.body = await context.load(sanitizePath(ctx.path), input);
+          ctx.response.body = await this.runScriptlet(
+              sanitizePath(ctx.path),
+              new Map<string, any>([["$input", input]]));
         } catch (e) {
           ctx.response
               .body = {errCode: 9999, message: e.message, detail: e.stack};
